@@ -6,7 +6,7 @@ import json
 from datetime import datetime
 
 
-API_KEY = os.getenv("API_KEY", "c3f68666c60c4a6b9ab100520251208")
+API_KEY = os.getenv("API_KEY", "{your_api_key}")
 CITY = os.getenv("CITY", "Ho Chi Minh City")
 KAFKA_BOOTSTRAP_SERVERS = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:29092")
 API_URL = "http://api.weatherapi.com/v1/current.json?key={API_KEY}&q={CITY}&aqi=no"
