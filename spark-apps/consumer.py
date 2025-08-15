@@ -2,7 +2,6 @@ from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, from_json
 from pyspark.sql.types import StructType, StructField, StringType, DoubleType, IntegerType
 
-# Khởi tạo Spark session
 spark = SparkSession.builder \
     .appName("WeatherStreaming") \
     .config("spark.jars.packages", "org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.0,org.postgresql:postgresql:42.7.3") \
@@ -11,7 +10,6 @@ spark = SparkSession.builder \
 
 spark.sparkContext.setLogLevel("WARN")
 
-# Schema dữ liệu weather
 schema = StructType([
     StructField("city", StringType(), True),
     StructField("country", StringType(), True),
@@ -24,7 +22,6 @@ schema = StructType([
     StructField("timestamp", StringType(), True)
 ])
 
-# Đọc dữ liệu từ Kafka
 df = spark.readStream \
     .format("kafka") \
     .option("kafka.bootstrap.servers", "kafka:9092") \
@@ -32,12 +29,10 @@ df = spark.readStream \
     .option("startingOffsets", "earliest") \
     .load()
 
-# Parse JSON
 weather_df = df.selectExpr("CAST(value AS STRING) as json_string") \
     .select(from_json(col("json_string"), schema).alias("data")) \
     .select("data.*")
 
-# Ghi vào console để debug
 console_query = weather_df.writeStream \
     .outputMode("append") \
     .format("console") \
@@ -46,7 +41,6 @@ console_query = weather_df.writeStream \
     .trigger(processingTime="5 seconds") \
     .start()
 
-# Ghi vào PostgreSQL
 postgres_query = weather_df.writeStream \
     .foreachBatch(lambda batch_df, batch_id: batch_df.write \
         .format("jdbc") \
@@ -61,5 +55,4 @@ postgres_query = weather_df.writeStream \
     .trigger(processingTime="5 seconds") \
     .start()
 
-# Chờ cả hai query hoàn tất
 spark.streams.awaitAnyTermination()
